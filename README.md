@@ -4,7 +4,7 @@
   <a href="https://arxiv.org/abs/0000.00000">
     <img src="https://img.shields.io/badge/Paper-arXiv%3A0000.00000-c0392b?style=for-the-badge" alt="Paper">
   </a>
-  <a href="https://your-username.github.io/your-repo-name/">
+  <a href="https://steinsgatesg.github.io/MSDScore/">
     <img src="https://img.shields.io/badge/Project%20Page-Website-6c2bd9?style=for-the-badge" alt="Project Page">
   </a>
 </p>
