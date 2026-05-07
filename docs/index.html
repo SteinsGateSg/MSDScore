@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation."
+    />
+    <title>MSD-Score</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <header class="hero">
+      <nav class="nav">
+        <a class="brand" href="#">MSD-Score</a>
+        <div class="nav-links">
+          <a href="#method">Method</a>
+          <a href="#results">Results</a>
+          <a href="#code">Code</a>
+          <a href="#citation">Citation</a>
+        </div>
+      </nav>
+
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Reference-Free Image Caption Evaluation</p>
+          <h1>Multi-Scale Distributional Scoring for Faithful Captions</h1>
+          <p class="subtitle">
+            MSD-Score evaluates image captions without references by comparing
+            patch-level visual evidence and token-level textual claims as local
+            distributions, then fusing them with global image-text similarity.
+          </p>
+
+          <div class="authors">
+            <span>Shichao Kan</span>
+            <span>Xuyang Zhang</span>
+            <span>Haojie Zhang</span>
+            <span>Zhe Zhu</span>
+            <span>Yigang Cen</span>
+            <span>Yixiong Liang</span>
+            <span>Lianlei Shan</span>
+            <span>Linna Zhang</span>
+            <span>Zhe Qu</span>
+            <span>Jiazhi Xia</span>
+          </div>
+
+          <div class="button-row">
+            <a class="button primary" href="assets/msd-score-tpami.pdf">Paper PDF</a>
+            <a class="button" href="#code">Quick Start</a>
+            <a class="button" href="#citation">BibTeX</a>
+          </div>
+        </div>
+
+        <aside class="hero-card">
+          <div class="score-card">
+            <span class="metric-label">Reference-free agreement</span>
+            <strong>57.6</strong>
+            <span>CapArena caption-level</span>
+          </div>
+          <div class="score-card muted">
+            <span class="metric-label">Fine-grained accuracy</span>
+            <strong>64.8</strong>
+            <span>DocENT overall</span>
+          </div>
+        </aside>
+      </section>
+    </header>
+
+    <main>
+      <section class="panel teaser-panel">
+        <figure>
+          <img src="assets/teaser.png" alt="MSD-Score motivation figure" />
+          <figcaption>
+            Global pooled similarity can hide local errors. MSD-Score keeps
+            patch-token structure and compares image/text distributions to
+            expose hallucinations and omissions.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="abstract" class="section split">
+        <div>
+          <p class="eyebrow">Abstract</p>
+          <h2>A deterministic metric for local grounding errors.</h2>
+        </div>
+        <p class="body-copy">
+          Evaluating captions without references is difficult because global
+          embedding similarity often misses hallucinated objects, missing
+          attributes, or incorrect relations. MSD-Score models image patches and
+          text tokens as von Mises-Fisher mixtures on the unit hypersphere. A
+          length-aware bi-directional KL divergence captures complementary
+          coverage and support failures, while Soft-MSD adaptively combines this
+          local discrepancy with global similarity. The result is a reproducible,
+          decomposable signal for offline caption evaluation.
+        </p>
+      </section>
+
+      <section id="method" class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Method</p>
+          <h2>From point similarity to distributional alignment.</h2>
+        </div>
+        <div class="method-grid">
+          <article class="method-card">
+            <span>01</span>
+            <h3>Local representations</h3>
+            <p>
+              Extract normalized image patch embeddings and caption token
+              embeddings instead of collapsing each modality into one vector.
+            </p>
+          </article>
+          <article class="method-card">
+            <span>02</span>
+            <h3>vMF mixtures</h3>
+            <p>
+              Fit fixed-kappa hyperspherical mixtures to model semantic modes
+              under the high-dimensional, few-token regime.
+            </p>
+          </article>
+          <article class="method-card">
+            <span>03</span>
+            <h3>Soft-MSD fusion</h3>
+            <p>
+              Penalize local divergence only when global candidate scores are
+              uncertain, preserving robust global relevance.
+            </p>
+          </article>
+        </div>
+        <figure class="wide-figure">
+          <img src="assets/framework.png" alt="MSD-Score framework" />
+        </figure>
+      </section>
+
+      <section id="results" class="section results-section">
+        <div class="section-heading">
+          <p class="eyebrow">Results</p>
+          <h2>Strong alignment with human and diagnostic benchmarks.</h2>
+        </div>
+        <div class="result-cards">
+          <div class="result-card">
+            <span>CapArena</span>
+            <strong>57.6</strong>
+            <p>caption-level agreement</p>
+          </div>
+          <div class="result-card">
+            <span>DocENT</span>
+            <strong>64.8</strong>
+            <p>overall binary accuracy</p>
+          </div>
+          <div class="result-card">
+            <span>COCO-CF Easy</span>
+            <strong>63.89</strong>
+            <p>pairwise accuracy</p>
+          </div>
+          <div class="result-card">
+            <span>Pascal-50S</span>
+            <strong>86.9</strong>
+            <p>mean pairwise accuracy</p>
+          </div>
+        </div>
+
+        <div class="figure-grid">
+          <figure>
+            <img src="assets/overview_results.png" alt="MSD-Score overview and benchmark results" />
+            <figcaption>Human preference and interpretability overview.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/coco_cf.png" alt="COCO-CF results" />
+            <figcaption>Controlled counterfactual hallucination evaluation.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <p class="eyebrow">Diagnostics</p>
+          <h2>KL decomposition gives score-relevant attribution.</h2>
+        </div>
+        <div class="figure-grid asymmetric">
+          <figure>
+            <img src="assets/attribution.png" alt="MSD-Score attribution examples" />
+            <figcaption>
+              Heatmaps reveal unsupported text and missing visual evidence.
+            </figcaption>
+          </figure>
+          <figure>
+            <img src="assets/sugarcrepe.png" alt="SugarCrepe results" />
+            <figcaption>
+              Fine-grained compositional errors are better separated by local
+              distributional verification.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="code" class="section code-section">
+        <div class="section-heading">
+          <p class="eyebrow">Code</p>
+          <h2>Run Soft-MSD on a pairwise benchmark.</h2>
+        </div>
+        <pre><code>pip install -r requirements.txt
+
+python metrics/vMF_MSD_Score/coco_eval_cf.py \
+  --data_json data/coco_cf/coco_cf_easy.json \
+  --judge_model openai/clip-vit-large-patch14 \
+  --device cuda</code></pre>
+        <p class="body-copy small">
+          The code release contains the core vMF/Soft-MSD metric, COCO-CF,
+          SugarCrepe, CapArena, DocENT scripts, GMM ablations, and caption
+          generation utilities.
+        </p>
+      </section>
+
+      <section id="citation" class="section citation-section">
+        <div class="section-heading">
+          <p class="eyebrow">Citation</p>
+          <h2>Cite MSD-Score.</h2>
+        </div>
+        <pre><code>@article{kan2026msdscore,
+  title   = {MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation},
+  author  = {Kan, Shichao and Zhang, Xuyang and Zhang, Haojie and Zhu, Zhe and Cen, Yigang and Liang, Yixiong and Shan, Lianlei and Zhang, Linna and Qu, Zhe and Xia, Jiazhi},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year    = {2026},
+  note    = {Manuscript under review}
+}</code></pre>
+      </section>
+    </main>
+
+    <footer>
+      <p>MSD-Score Project Page</p>
+      <p>Central South University and collaborators</p>
+    </footer>
+  </body>
+</html>
