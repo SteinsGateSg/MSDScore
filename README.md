@@ -1,5 +1,14 @@
 # MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation.
 
+<p align="center">
+  <a href="https://arxiv.org/abs/0000.00000">
+    <img src="https://img.shields.io/badge/Paper-arXiv%3A0000.00000-c0392b?style=for-the-badge" alt="Paper">
+  </a>
+  <a href="https://your-username.github.io/your-repo-name/">
+    <img src="https://img.shields.io/badge/Project%20Page-Website-6c2bd9?style=for-the-badge" alt="Project Page">
+  </a>
+</p>
+
 MSD-Score is a reference-free metric for image caption evaluation. It scores an image-caption pair without using ground-truth reference captions by combining global image-text similarity with local distributional verification. Local image patches and text tokens are modeled as von Mises-Fisher (vMF) mixtures on the unit hypersphere, and semantic discrepancy is measured with a length-aware bi-directional KL divergence.
 
 <p align="center">
