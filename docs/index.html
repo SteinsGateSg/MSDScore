@@ -208,6 +208,7 @@
         font-size: clamp(2.45rem, 4.45vw, 4.95rem);
         line-height: 1.04;
         letter-spacing: -0.04em;
+        text-wrap: balance;
       }
 
       h2 {
@@ -215,6 +216,7 @@
         font-size: clamp(2rem, 4vw, 4.2rem);
         line-height: 1;
         letter-spacing: -0.045em;
+        text-wrap: balance;
       }
 
       h3 {
@@ -228,6 +230,7 @@
         color: #344054;
         font-size: clamp(1rem, 1.22vw, 1.16rem);
         line-height: 1.72;
+        text-wrap: pretty;
       }
 
       .authors {
@@ -258,6 +261,8 @@
         font-size: 0.9rem;
         font-weight: 700;
         box-shadow: 0 8px 20px rgba(16, 24, 40, 0.04);
+        max-width: 100%;
+        white-space: normal;
       }
 
       .authors span {
@@ -278,11 +283,13 @@
       }
 
       .affiliations span {
+        align-items: flex-start;
         gap: 5px;
         color: #667085;
         font-size: 0.84rem;
         font-weight: 600;
         background: rgba(255, 255, 255, 0.45);
+        overflow-wrap: anywhere;
       }
 
       .paper-meta span {
@@ -430,6 +437,7 @@
         color: var(--muted);
         font-size: 0.94rem;
         line-height: 1.55;
+        text-wrap: pretty;
       }
 
       .teaser-panel img {
@@ -455,6 +463,7 @@
       .body-copy {
         color: #344054;
         font-size: 1.04rem;
+        text-wrap: pretty;
       }
 
       .body-copy.small {
@@ -635,6 +644,7 @@
         position: relative;
         padding-left: 24px;
         color: #475467;
+        overflow-wrap: anywhere;
       }
 
       .code-list li::before {
