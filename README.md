@@ -1,7 +1,7 @@
 # MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation.
 
 <p align="center">
-  <a href="https://arxiv.org/abs/0000.00000">
+  <a href="https://arxiv.org/abs/2605.06080">
     <img src="https://img.shields.io/badge/Paper-arXiv%3A0000.00000-c0392b?style=for-the-badge" alt="Paper">
   </a>
   <a href="https://steinsgatesg.github.io/MSDScore/">
@@ -27,16 +27,17 @@ MSD-Score is a reference-free metric for image caption evaluation. It scores an 
 
 Given an image `I` and a caption `T`, MSD-Score extracts normalized image patch embeddings and text token embeddings, fits fixed-concentration vMF mixtures to both sets, and computes a length-aware local divergence:
 
-```text
+$$
 d(I, T) = beta(L) * KL(P_img || P_txt) + (1 - beta(L)) * KL(P_txt || P_img)
-```
+$$
+
 
 The final score combines this local discrepancy with global similarity:
 
-```text
+$$
 MSD(I, T)      = g(I, T) - alpha * d(I, T)
 Soft-MSD(I,T) = g(I, T) - alpha * u * d(I, T)
-```
+$$
 
 where `g(I,T)` is the global cosine similarity and `u` is an uncertainty term derived from the candidate-level softmax of global scores.
 

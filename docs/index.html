@@ -5,95 +5,818 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation."
+      content="MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation. A reference-free metric for faithful image caption evaluation with local distributional verification."
     />
+    <meta
+      name="keywords"
+      content="MSD-Score, image caption evaluation, reference-free metrics, vision-language models, hallucination detection, multimodal alignment, vMF mixture, KL divergence"
+    />
+    <meta
+      name="author"
+      content="Shichao Kan, Xuyang Zhang, Haojie Zhang, Zhe Zhu, Yigang Cen, Yixiong Liang, Lianlei Shan, Linna Zhang, Zhe Qu, Jiazhi Xia"
+    />
+    <meta name="theme-color" content="#101828" />
+
+    <meta
+      property="og:title"
+      content="MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation"
+    />
+    <meta
+      property="og:description"
+      content="A reference-free image caption evaluation metric that models image patches and text tokens as local distributions for fine-grained grounding diagnostics."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://steinsgatesg.github.io/MSDScore/" />
+    <meta property="og:image" content="https://steinsgatesg.github.io/MSDScore/assets/teaser.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MSD-Score" />
+    <meta
+      name="twitter:description"
+      content="Reference-free image caption evaluation via multi-scale distributional scoring."
+    />
+    <meta name="twitter:image" content="https://steinsgatesg.github.io/MSDScore/assets/teaser.png" />
+
+    <link rel="canonical" href="https://steinsgatesg.github.io/MSDScore/" />
     <title>MSD-Score</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      :root {
+        --bg: #f7f1e8;
+        --bg-2: #fffaf2;
+        --ink: #101828;
+        --muted: #667085;
+        --line: rgba(16, 24, 40, 0.12);
+        --card: rgba(255, 255, 255, 0.72);
+        --card-strong: rgba(255, 255, 255, 0.92);
+        --brand: #a3422d;
+        --brand-2: #d97757;
+        --gold: #b78a33;
+        --green: #2f7d59;
+        --shadow: 0 24px 80px rgba(16, 24, 40, 0.12);
+        --shadow-soft: 0 16px 48px rgba(16, 24, 40, 0.08);
+        --radius-xl: 32px;
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(217, 119, 87, 0.28), transparent 34rem),
+          radial-gradient(circle at 88% 8%, rgba(183, 138, 51, 0.2), transparent 30rem),
+          linear-gradient(180deg, var(--bg), #fbf7ef 42%, #f8efe4 100%);
+        font-family: Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      .grain {
+        pointer-events: none;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        opacity: 0.06;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+
+      a {
+        color: inherit;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .hero,
+      main,
+      footer {
+        width: min(var(--max), calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 28px 0 56px;
+      }
+
+      .nav {
+        position: sticky;
+        top: 16px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 14px 18px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 250, 242, 0.78);
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        font-size: 1.08rem;
+      }
+
+      .brand-mark {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        box-shadow: 0 10px 24px rgba(163, 66, 45, 0.26);
+      }
+
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      .nav-links a {
+        border-radius: 999px;
+        padding: 8px 12px;
+        color: var(--muted);
+        font-size: 0.92rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 180ms ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--ink);
+        background: rgba(16, 24, 40, 0.06);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.16fr) minmax(320px, 0.84fr);
+        align-items: center;
+        gap: 36px;
+        padding: 76px 0 32px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--brand);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 980px;
+        margin-bottom: 24px;
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(2.6rem, 5.8vw, 5.8rem);
+        line-height: 1.02;
+        letter-spacing: -0.045em;
+      }
+
+      h2 {
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(2rem, 4vw, 4.2rem);
+        line-height: 1;
+        letter-spacing: -0.045em;
+      }
+
+      h3 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+      }
+
+      .subtitle {
+        max-width: 760px;
+        color: #344054;
+        font-size: clamp(1.04rem, 1.5vw, 1.28rem);
+      }
+
+      .authors {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 28px;
+      }
+
+      .authors sup,
+      .affiliations sup {
+        color: var(--brand);
+        font-size: 0.72em;
+        font-weight: 800;
+        line-height: 0;
+      }
+
+      .authors span,
+      .affiliations span,
+      .paper-meta span,
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 7px 11px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        box-shadow: 0 8px 20px rgba(16, 24, 40, 0.04);
+      }
+
+      .authors span {
+        gap: 3px;
+        padding: 6px 10px;
+        font-size: 0.86rem;
+        font-weight: 650;
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .affiliations,
+      .paper-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .affiliations span {
+        gap: 5px;
+        color: #667085;
+        font-size: 0.84rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.45);
+      }
+
+      .paper-meta span {
+        color: var(--brand);
+        background: rgba(163, 66, 45, 0.08);
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0 18px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-weight: 800;
+        box-shadow: 0 10px 24px rgba(16, 24, 40, 0.06);
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+        background: #fff;
+        box-shadow: 0 16px 34px rgba(16, 24, 40, 0.12);
+      }
+
+      .button.primary {
+        border-color: transparent;
+        color: #fff;
+        background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      }
+
+      .hero-card {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        padding: 20px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .hero-card::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        z-index: -1;
+        border-radius: inherit;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(217, 119, 87, 0.2), rgba(183, 138, 51, 0.16));
+      }
+
+      .mini-figure {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        background: #fff;
+      }
+
+      .mini-figure img {
+        width: 100%;
+        aspect-ratio: 1.35 / 1;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .score-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .score-card {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .metric-label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .score-card strong {
+        display: block;
+        margin: 7px 0 2px;
+        color: var(--brand);
+        font-size: 2.25rem;
+        line-height: 1;
+        letter-spacing: -0.05em;
+      }
+
+      .score-card span:last-child {
+        color: #475467;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      main {
+        display: grid;
+        gap: 28px;
+        padding-bottom: 40px;
+      }
+
+      .panel,
+      .section {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(16px);
+      }
+
+      .section {
+        padding: clamp(28px, 5vw, 54px);
+      }
+
+      .teaser-panel {
+        overflow: hidden;
+        background: var(--card-strong);
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      figcaption {
+        color: var(--muted);
+        font-size: 0.94rem;
+        line-height: 1.55;
+      }
+
+      .teaser-panel img {
+        width: 100%;
+        max-height: 720px;
+        padding: 10px;
+        object-fit: contain;
+        background: #fff;
+      }
+
+      .teaser-panel figcaption {
+        padding: 18px 22px 22px;
+        border-top: 1px solid var(--line);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 0.82fr 1.18fr;
+        gap: 34px;
+        align-items: start;
+      }
+
+      .body-copy {
+        color: #344054;
+        font-size: 1.04rem;
+      }
+
+      .body-copy.small {
+        margin-top: 18px;
+        font-size: 0.98rem;
+      }
+
+      .section-heading {
+        max-width: 820px;
+        margin-bottom: 28px;
+      }
+
+      .method-grid,
+      .result-cards,
+      .release-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .method-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .method-card,
+      .result-card,
+      .release-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.64);
+        padding: 22px;
+      }
+
+      .method-card span {
+        display: inline-flex;
+        margin-bottom: 18px;
+        color: var(--brand);
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+      }
+
+      .method-card p,
+      .release-card p {
+        margin-bottom: 0;
+        color: var(--muted);
+      }
+
+      .wide-figure,
+      .figure-grid figure {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: #fff;
+      }
+
+      .wide-figure {
+        margin-top: 18px;
+      }
+
+      .wide-figure img,
+      .figure-grid img {
+        width: 100%;
+        padding: 10px;
+        object-fit: contain;
+        background: #fff;
+      }
+
+      .wide-figure figcaption,
+      .figure-grid figcaption {
+        padding: 14px 16px 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .result-cards {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      }
+
+      .results-section {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 244, 235, 0.72));
+      }
+
+      .citation-section {
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .result-card span {
+        color: var(--muted);
+        font-size: 0.86rem;
+        font-weight: 800;
+      }
+
+      .result-card strong {
+        display: block;
+        margin: 8px 0 2px;
+        color: var(--brand);
+        font-size: 2.5rem;
+        line-height: 1;
+        letter-spacing: -0.06em;
+      }
+
+      .result-card p {
+        margin-bottom: 0;
+        color: #475467;
+        font-size: 0.92rem;
+      }
+
+      .figure-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+      }
+
+      .figure-grid.asymmetric {
+        grid-template-columns: 1.14fr 0.86fr;
+      }
+
+      .release-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .release-card strong {
+        display: block;
+        margin-bottom: 6px;
+        letter-spacing: -0.03em;
+      }
+
+      pre {
+        overflow-x: auto;
+        margin: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-lg);
+        background: #101828;
+        color: #f9fafb;
+        padding: 22px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      code {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.92rem;
+        line-height: 1.65;
+      }
+
+      .copy-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+      }
+
+      .copy-button {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.78);
+        padding: 9px 14px;
+        cursor: pointer;
+        color: var(--ink);
+        font: inherit;
+        font-weight: 800;
+      }
+
+      .code-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 18px;
+        margin: 20px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .code-list li {
+        position: relative;
+        padding-left: 24px;
+        color: #475467;
+      }
+
+      .code-list li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.68em;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--brand), var(--gold));
+      }
+
+      footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 28px 0 44px;
+        color: #475467;
+      }
+
+      footer p {
+        margin: 0;
+      }
+
+      footer a {
+        color: var(--ink);
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 980px) {
+        .hero-grid,
+        .split,
+        .figure-grid,
+        .figure-grid.asymmetric {
+          grid-template-columns: 1fr;
+        }
+
+        .method-grid,
+        .release-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .result-cards {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 720px) {
+        .hero,
+        main,
+        footer {
+          width: min(100% - 24px, var(--max));
+        }
+
+        .nav {
+          position: static;
+          align-items: flex-start;
+          border-radius: 26px;
+          flex-direction: column;
+        }
+
+        .nav-links {
+          justify-content: flex-start;
+        }
+
+        .hero-grid {
+          padding-top: 46px;
+        }
+
+        .score-grid,
+        .method-grid,
+        .result-cards,
+        .release-grid,
+        .code-list {
+          grid-template-columns: 1fr;
+        }
+
+        .section {
+          border-radius: 24px;
+        }
+
+        .authors span,
+        .affiliations span,
+        .paper-meta span {
+          font-size: 0.84rem;
+        }
+      }
+    </style>
   </head>
+
   <body>
     <div class="grain"></div>
+
     <header class="hero">
-      <nav class="nav">
-        <a class="brand" href="#">MSD-Score</a>
+      <nav class="nav" aria-label="Main navigation">
+        <a class="brand" href="#top" aria-label="MSD-Score home">
+          <span class="brand-mark">M</span>
+          <span>MSD-Score</span>
+        </a>
         <div class="nav-links">
+          <a href="#abstract">Abstract</a>
           <a href="#method">Method</a>
           <a href="#results">Results</a>
-          <a href="#code">Code</a>
+          <a href="#diagnostics">Diagnostics</a>
           <a href="#citation">Citation</a>
         </div>
       </nav>
 
-      <section class="hero-grid">
+      <section id="top" class="hero-grid">
         <div class="hero-copy">
           <p class="eyebrow">Reference-Free Image Caption Evaluation</p>
-          <h1>Multi-Scale Distributional Scoring for Faithful Captions</h1>
+          <h1>MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation</h1>
           <p class="subtitle">
-            MSD-Score evaluates image captions without references by comparing
-            patch-level visual evidence and token-level textual claims as local
-            distributions, then fusing them with global image-text similarity.
+            MSD-Score evaluates image captions without references by modeling
+            local visual evidence and textual claims as distributions, then
+            combining fine-grained discrepancy with global image-text similarity.
           </p>
 
-          <div class="authors">
-            <span>Shichao Kan</span>
-            <span>Xuyang Zhang</span>
-            <span>Haojie Zhang</span>
-            <span>Zhe Zhu</span>
-            <span>Yigang Cen</span>
-            <span>Yixiong Liang</span>
-            <span>Lianlei Shan</span>
-            <span>Linna Zhang</span>
-            <span>Zhe Qu</span>
-            <span>Jiazhi Xia</span>
+          <div class="authors" aria-label="Authors">
+            <span>Shichao Kan<sup>1</sup></span>
+            <span>Xuyang Zhang<sup>1</sup></span>
+            <span>Haojie Zhang<sup>1</sup></span>
+            <span>Zhe Zhu<sup>1</sup></span>
+            <span>Yigang Cen<sup>2</sup></span>
+            <span>Yixiong Liang<sup>1</sup></span>
+            <span>Lianlei Shan<sup>3</sup></span>
+            <span>Linna Zhang<sup>4</sup></span>
+            <span>Zhe Qu<sup>1</sup></span>
+            <span>Jiazhi Xia<sup>1,*</sup></span>
+          </div>
+
+          <div class="affiliations" aria-label="Affiliations">
+            <span><sup>1</sup>School of Computer Science and Engineering, Central South University</span>
+            <span><sup>2</sup>School of Computer Science and Technology, Beijing Jiaotong University</span>
+            <span><sup>3</sup>School of Computer Science and Technology, University of Chinese Academy of Sciences</span>
+            <span><sup>4</sup>School of Mechanical Engineering, Guizhou University</span>
+            <span><sup>*</sup>Corresponding author</span>
           </div>
 
           <div class="button-row">
             <a
               class="button primary"
-              href="https://arxiv.org/abs/0000.00000"
+              href="https://arxiv.org/abs/2605.06080"
               target="_blank"
               rel="noopener noreferrer"
-              >arXiv</a
-            >
+            >Paper</a>
             <a
-              class="button primary"
+              class="button"
               href="https://github.com/SteinsGateSg/MSDScore"
               target="_blank"
               rel="noopener noreferrer"
-              >Code</a
-            >
+            >Code</a>
             <a class="button" href="#citation">BibTeX</a>
           </div>
         </div>
 
-        <aside class="hero-card">
-          <div class="score-card">
-            <span class="metric-label">Reference-free agreement</span>
-            <strong>57.6</strong>
-            <span>CapArena caption-level</span>
-          </div>
-          <div class="score-card muted">
-            <span class="metric-label">Fine-grained accuracy</span>
-            <strong>64.8</strong>
-            <span>DocENT overall</span>
+        <aside class="hero-card" aria-label="Key results">
+          <figure class="mini-figure">
+            <img src="assets/teaser.png" alt="MSD-Score motivation figure" />
+          </figure>
+          <div class="score-grid">
+            <div class="score-card">
+              <span class="metric-label">CapArena</span>
+              <strong>57.6</strong>
+              <span>caption-level agreement</span>
+            </div>
+            <div class="score-card">
+              <span class="metric-label">DocENT</span>
+              <strong>64.8</strong>
+              <span>overall accuracy</span>
+            </div>
           </div>
         </aside>
       </section>
     </header>
 
     <main>
-      <section class="panel teaser-panel">
+      <section class="panel teaser-panel" aria-label="Project teaser">
         <figure>
-          <img src="assets/teaser.png" alt="MSD-Score motivation figure" />
+          <img src="assets/teaser.png" alt="MSD-Score motivation and overview" />
           <figcaption>
-            Global pooled similarity can hide local errors. MSD-Score keeps
-            patch-token structure and compares image/text distributions to
-            expose hallucinations and omissions.
+            Global pooled similarity can hide local grounding errors. MSD-Score
+            keeps patch-token structure and compares image/text distributions to
+            expose hallucinations, omissions, and other fine-grained mismatches.
           </figcaption>
         </figure>
       </section>
@@ -101,17 +824,18 @@
       <section id="abstract" class="section split">
         <div>
           <p class="eyebrow">Abstract</p>
-          <h2>A deterministic metric for local grounding errors.</h2>
+          <h2>Reference-free caption evaluation with local distributional verification.</h2>
         </div>
         <p class="body-copy">
-          Evaluating captions without references is difficult because global
-          embedding similarity often misses hallucinated objects, missing
-          attributes, or incorrect relations. MSD-Score models image patches and
-          text tokens as von Mises-Fisher mixtures on the unit hypersphere. A
-          length-aware bi-directional KL divergence captures complementary
-          coverage and support failures, while Soft-MSD adaptively combines this
-          local discrepancy with global similarity. The result is a reproducible,
-          decomposable signal for offline caption evaluation.
+          Evaluating image captions without references remains challenging because
+          global embedding similarity often misses fine-grained mismatches such as
+          hallucinated objects, missing attributes, or incorrect relations. MSD-Score
+          models image patches and text tokens as von Mises-Fisher mixtures on the
+          unit hypersphere. A weighted bi-directional KL divergence captures
+          complementary coverage and support failures, while Soft-MSD adaptively
+          combines this local discrepancy with global similarity. The result is a
+          deterministic, decomposable, and reproducible signal for faithful offline
+          caption evaluation.
         </p>
       </section>
 
@@ -119,35 +843,46 @@
         <div class="section-heading">
           <p class="eyebrow">Method</p>
           <h2>From point similarity to distributional alignment.</h2>
+          <p class="body-copy">
+            MSD-Score treats local image patches and caption tokens as structured
+            semantic distributions, enabling explicit measurement of missing visual
+            evidence and unsupported textual claims.
+          </p>
         </div>
+
         <div class="method-grid">
           <article class="method-card">
             <span>01</span>
             <h3>Local representations</h3>
             <p>
               Extract normalized image patch embeddings and caption token
-              embeddings instead of collapsing each modality into one vector.
+              embeddings instead of collapsing each modality into a single vector.
             </p>
           </article>
           <article class="method-card">
             <span>02</span>
             <h3>vMF mixtures</h3>
             <p>
-              Fit fixed-kappa hyperspherical mixtures to model semantic modes
-              under the high-dimensional, few-token regime.
+              Fit fixed-kappa hyperspherical mixtures to model semantic modes in
+              high-dimensional, few-token local embedding sets.
             </p>
           </article>
           <article class="method-card">
             <span>03</span>
-            <h3>Soft-MSD fusion</h3>
+            <h3>Bi-directional KL</h3>
             <p>
-              Penalize local divergence only when global candidate scores are
-              uncertain, preserving robust global relevance.
+              Use image-to-text coverage and text-to-image support divergences to
+              capture omissions and hallucinations.
             </p>
           </article>
         </div>
+
         <figure class="wide-figure">
           <img src="assets/framework.png" alt="MSD-Score framework" />
+          <figcaption>
+            Overview of MSD-Score: local vision-language alignment, vMF mixture
+            modeling, bi-directional divergence, and uncertainty-aware fusion.
+          </figcaption>
         </figure>
       </section>
 
@@ -155,7 +890,13 @@
         <div class="section-heading">
           <p class="eyebrow">Results</p>
           <h2>Strong alignment with human and diagnostic benchmarks.</h2>
+          <p class="body-copy">
+            MSD-Score improves reference-free caption evaluation across human
+            preference benchmarks, fine-grained factual error datasets, and
+            controlled counterfactual stress tests.
+          </p>
         </div>
+
         <div class="result-cards">
           <div class="result-card">
             <span>CapArena</span>
@@ -165,11 +906,16 @@
           <div class="result-card">
             <span>DocENT</span>
             <strong>64.8</strong>
-            <p>overall binary accuracy</p>
+            <p>overall accuracy</p>
           </div>
           <div class="result-card">
             <span>COCO-CF Easy</span>
             <strong>63.89</strong>
+            <p>pairwise accuracy</p>
+          </div>
+          <div class="result-card">
+            <span>COCO-CF Hard</span>
+            <strong>59.38</strong>
             <p>pairwise accuracy</p>
           </div>
           <div class="result-card">
@@ -191,11 +937,17 @@
         </div>
       </section>
 
-      <section class="section">
+      <section id="diagnostics" class="section">
         <div class="section-heading">
           <p class="eyebrow">Diagnostics</p>
           <h2>KL decomposition gives score-relevant attribution.</h2>
+          <p class="body-copy">
+            The divergence can be decomposed into patch- and token-level
+            contributions, providing diagnostic heatmaps for unsupported details
+            and missing visual evidence.
+          </p>
         </div>
+
         <div class="figure-grid asymmetric">
           <figure>
             <img src="assets/attribution.png" alt="MSD-Score attribution examples" />
@@ -206,47 +958,92 @@
           <figure>
             <img src="assets/sugarcrepe.png" alt="SugarCrepe results" />
             <figcaption>
-              Fine-grained compositional errors are better separated by local
+              Fine-grained compositional errors are separated by local
               distributional verification.
             </figcaption>
           </figure>
         </div>
       </section>
-
-      <section id="code" class="section code-section">
+      <section class="section">
         <div class="section-heading">
-          <p class="eyebrow">Code</p>
-          <h2>Run Soft-MSD on a pairwise benchmark.</h2>
+          <p class="eyebrow">Repository</p>
+          <h2>Resources included in this release.</h2>
         </div>
-        <pre><code>pip install -r requirements.txt
 
-python metrics/vMF_MSD_Score/coco_eval_cf.py \
-  --data_json data/coco_cf/coco_cf_easy.json \
-  --judge_model openai/clip-vit-large-patch14 \
-  --device cuda</code></pre>
-        <p class="body-copy small">
-          The code release contains the core vMF/Soft-MSD metric, COCO-CF,
-          SugarCrepe, CapArena, DocENT scripts, GMM ablations, and caption
-          generation utilities.
-        </p>
+        <div class="release-grid">
+          <article class="release-card">
+            <strong>Metric</strong>
+            <p>Reference-free local distributional scoring with Soft-MSD fusion.</p>
+          </article>
+          <article class="release-card">
+            <strong>Benchmarks</strong>
+            <p>Scripts for controlled and human-aligned caption evaluation.</p>
+          </article>
+          <article class="release-card">
+            <strong>Ablations</strong>
+            <p>vMF/GMM comparisons, fixed-kappa analysis, and KL variants.</p>
+          </article>
+          <article class="release-card">
+            <strong>Diagnostics</strong>
+            <p>KL-decomposition heatmaps for grounding error attribution.</p>
+          </article>
+        </div>
       </section>
 
-      <!-- <section id="citation" class="section citation-section">
+      <section id="citation" class="section citation-section">
         <div class="section-heading">
           <p class="eyebrow">Citation</p>
           <h2>Cite MSD-Score.</h2>
         </div>
-        <pre><code>@article{kan2026msdscore,
-  title   = {MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation},
-  author  = {Kan, Shichao and Zhang, Xuyang and Zhang, Haojie and Zhu, Zhe and Cen, Yigang and Liang, Yixiong and Shan, Lianlei and Zhang, Linna and Qu, Zhe and Xia, Jiazhi},
-  year    = {2026},
+
+        <div class="copy-row">
+          <button class="copy-button" type="button" data-copy-target="bibtex">
+            Copy BibTeX
+          </button>
+        </div>
+
+        <pre><code id="bibtex">@misc{kan2026msdscore,
+  title         = {MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation},
+  author        = {Kan, Shichao and Zhang, Xuyang and Zhang, Haojie and Zhu, Zhe and Cen, Yigang and Liang, Yixiong and Shan, Lianlei and Zhang, Linna and Qu, Zhe and Xia, Jiazhi},
+  year          = {2026},
+  eprint        = {2605.06080},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2605.06080}
 }</code></pre>
-      </section> -->
+      </section>
     </main>
 
     <footer>
-      <p>MSD-Score Project Page</p>
-      <p>Central South University and collaborators</p>
+      <p><strong>MSD-Score</strong> · Reference-Free Image Caption Evaluation</p>
+      <p>
+        Central South University and collaborators ·
+        <a href="https://arxiv.org/abs/2605.06080" target="_blank" rel="noopener noreferrer">arXiv</a>
+        ·
+        <a href="https://github.com/SteinsGateSg/MSDScore" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </p>
     </footer>
+
+    <script>
+      const copyButton = document.querySelector("[data-copy-target='bibtex']");
+      const bibtex = document.getElementById("bibtex");
+
+      if (copyButton && bibtex) {
+        copyButton.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(bibtex.innerText.trim());
+            copyButton.textContent = "Copied";
+            setTimeout(() => {
+              copyButton.textContent = "Copy BibTeX";
+            }, 1600);
+          } catch (error) {
+            copyButton.textContent = "Copy failed";
+            setTimeout(() => {
+              copyButton.textContent = "Copy BibTeX";
+            }, 1600);
+          }
+        });
+      }
+    </script>
   </body>
 </html>
