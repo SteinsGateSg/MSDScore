@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/2605.06080">
-    <img src="https://img.shields.io/badge/Paper-arXiv%3A0000.00000-c0392b?style=for-the-badge" alt="Paper">
+    <img src="https://img.shields.io/badge/Paper-arXiv%3A2605.06080-c0392b?style=for-the-badge" alt="Paper">
   </a>
   <a href="https://steinsgatesg.github.io/MSDScore/">
     <img src="https://img.shields.io/badge/Project%20Page-Website-6c2bd9?style=for-the-badge" alt="Project Page">
