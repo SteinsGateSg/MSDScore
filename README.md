@@ -324,8 +324,12 @@ If you use this code, please cite:
 
 ```bibtex
 @misc{kan2026msdscore,
-  title   = {MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation},
-  author  = {Kan, Shichao and Zhang, Xuyang and Zhang, Haojie and Zhu, Zhe and Cen, Yigang and Liang, Yixiong and Shan, Lianlei and Zhang, Linna and Qu, Zhe and Xia, Jiazhi},
-  year    = {2026}
+  title         = {MSD-Score: Multi-Scale Distributional Scoring for Reference-Free Image Caption Evaluation},
+  author        = {Kan, Shichao and Zhang, Xuyang and Zhang, Haojie and Zhu, Zhe and Cen, Yigang and Liang, Yixiong and Shan, Lianlei and Zhang, Linna and Qu, Zhe and Xia, Jiazhi},
+  year          = {2026},
+  eprint        = {2605.06080},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV},
+  url           = {https://arxiv.org/abs/2605.06080}
 }
 ```
